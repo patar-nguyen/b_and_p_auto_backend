@@ -5,12 +5,13 @@ using System.Data;
 using Azure.Core;
 using Microsoft.IdentityModel.Tokens;
 using System.Net.Mail;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using Dapper;
 
 namespace LearningAPIs.Service.UserAccountService
 {
     public class UserAccountService : IUserAccountService
     {
-        private readonly string _connection = "";
 
         public IEnumerable<UserAccount> Get()
         {
@@ -93,17 +94,6 @@ namespace LearningAPIs.Service.UserAccountService
 	                                THROW;
                                 END CATCH;
                         ";
-            //string sqlTest = @"BEGIN TRY
-            //                    BEGIN TRANSACTION 
-            //                        DECLARE @UID UNIQUEIDENTIFIER = NEWID()
-            //                        SELECT @UID as 'UserId'
-            //                    COMMIT
-            //                    END TRY
-            //                    BEGIN CATCH
-	           //                     ROLLBACK;
-	           //                     THROW;
-            //                    END CATCH;
-            //            ";
 
             using (SqlConnection conn = new SqlConnection(_connection))
             {
@@ -155,7 +145,7 @@ namespace LearningAPIs.Service.UserAccountService
                             Province = request.Province,
                             Country = request.Country,
                             Zipcode = request.Zipcode,
-                            
+
                         };
                         return response;
                     }
@@ -164,7 +154,7 @@ namespace LearningAPIs.Service.UserAccountService
             return null;
         }
 
-        public UserAccount GetUserAccountById( Guid userId)
+        public UserAccount GetUserAccountById(Guid userId)
         {
             UserAccount response = null;
             DataTable dt = new DataTable();
@@ -202,9 +192,78 @@ namespace LearningAPIs.Service.UserAccountService
             return response;
         }
 
+
+        public bool UpdaterUserPassword(Guid userId, string password)
+        {
+             bool result = false;
+             //updates password if password sent in request
+            if (password != "" && password != null)
+            {
+                using (var connection = new SqlConnection(_connection))
+                {
+                    connection.Execute("UPDATE UserAccount SET [Password] = @Password WHERE UserId = @UserId", new { Password = password, UserId = userId });
+                    result = true;
+                }
+            }
+            return result;
+        }
+
         public UserAccount UpdateUserAccount(Guid userId, UserAccountPatchRequest request)
         {
-            UserAccount response = null;
+            UserAccount userAccount = GetUserAccountById(userId);
+
+            //Updates email if email value sent in request
+            if (request.Email != null && request.Email != "")
+            {
+                using (var connection = new SqlConnection(_connection))
+                {
+                    connection.Execute("UPDATE UserAccount SET Email = @Email WHERE UserId = @UserId", new { Email = request.Email, UserId = userId });
+                }
+                userAccount.Email = request.Email;
+            }
+
+            if (request.FirstName != null && !request.FirstName.Equals(""))
+            {
+                userAccount.FirstName = request.FirstName;
+            }
+            if (request.LastName != null && !request.LastName.Equals(""))
+            {
+                userAccount.LastName = request.LastName;
+            }
+            if (request.Street != null && !request.Street.Equals(""))
+            {
+                userAccount.Street = request.Street;
+            }
+            if (request.City != null && !request.City.Equals(""))
+            {
+                userAccount.City = request.City;
+            }
+            if (request.Province != null && !request.Province.Equals(""))
+            {
+                userAccount.Province = request.Province;
+            }
+            if (request.Country != null && !request.Country.Equals(""))
+            {
+                userAccount.Country = request.Country;
+            }
+            if (request.Zipcode != null && !request.Zipcode.Equals(""))
+            {
+                userAccount.Zipcode = request.Zipcode;
+            }
+            if (request.DateOfBirth != null && !request.DateOfBirth.Equals(""))
+            {
+                userAccount.DateOfBirth = Convert.ToDateTime(request.DateOfBirth);
+            }
+
+            using (var connection = new SqlConnection(_connection))
+            {
+                connection.Execute("UPDATE UserInfo SET FirstName = @FirstName, LastName = @LastName, Street = @Street, City = @City, Province = @Province, Country = @Country," +
+                    "Zipcode = @Zipcode, DateOfBirth = @DateOfBirth WHERE UserId = @UserId"
+                    , new { FirstName = userAccount.FirstName, LastName = userAccount.FirstName, Street = userAccount.Street, City = userAccount.City, Province = userAccount.Province, Country = userAccount.Country,
+                            Zipcode = userAccount.Zipcode, DateOfBirth = userAccount.DateOfBirth, UserId = userId});
+            }
+
+            UserAccount response = userAccount;
 
             return response;
         }

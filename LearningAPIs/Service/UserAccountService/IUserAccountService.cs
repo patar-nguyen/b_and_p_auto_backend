@@ -8,7 +8,7 @@ namespace LearningAPIs.Service.UserAccountService
         UserAccount GetUserAccount(string username = "", string emailAddress = "");
         UserAccount CreateUserAccount(UserAccountRequest request);
         UserAccount GetUserAccountById(Guid userId);
-
+        bool UpdaterUserPassword(Guid userId, string password);
         UserAccount UpdateUserAccount(Guid userId, UserAccountPatchRequest request);
     }
 }

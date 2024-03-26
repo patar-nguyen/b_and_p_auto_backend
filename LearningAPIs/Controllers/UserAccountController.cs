@@ -30,8 +30,6 @@ namespace LearningAPIs.Controllers
         public ActionResult<UserAccount> Get(string? username, string? emailAddress) 
         {
             var response = _userAccountService.GetUserAccount(username, emailAddress);
-            //return JsonConvert.SerializeObject(_userAccountService.GetUserAccount(username),Formatting.Indented);
-            //return _userAccountService.Get(username);
             if (response == null)
             {
                 return NoContent();
@@ -57,17 +55,30 @@ namespace LearningAPIs.Controllers
         }
 
         [HttpPatch("{userId}")]
-        public ActionResult<UserAccount> UpdateUserAccountById ([FromRoute] Guid userId, [FromBody] UserAccountPatchRequest request)
+        public ActionResult<UserAccount> UpdateUserAccountById([FromRoute] Guid userId, [FromBody] UserAccountPatchRequest request)
         {
             if (_userAccountService.GetUserAccountById(userId) == null)
             {
-                return BadRequest("Issue with userId");
+                return BadRequest("Invalid userId");
             }
 
             var response = _userAccountService.UpdateUserAccount(userId, request);
 
-            return Ok();
+            return Ok(response);
 
+        }
+
+        [HttpPatch("{userId}/password")]
+        public ActionResult<bool> UpdateUserAccountPasswordById([FromRoute] Guid userId, [FromBody] string password)
+        {
+            if (_userAccountService.GetUserAccountById(userId) == null)
+            {
+                return BadRequest("Invalid userId");
+            }
+
+            var response = _userAccountService.UpdaterUserPassword(userId, password);
+
+            return Ok(response);
         }
 
 

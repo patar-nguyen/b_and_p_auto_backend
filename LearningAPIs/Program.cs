@@ -1,10 +1,11 @@
 using LearningAPIs.Service.UserAccountService;
+using LearningAPIs.Service.UserCarService;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-//builder.Configuration.AddJsonFile("")
+//builder.Configuration.AddJsonFile("Secrets.json");
 
 builder.Services.AddCors(options =>
 {
@@ -21,6 +22,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
+builder.Services.AddScoped<IUserCarService, UserCarService>();
 
 var app = builder.Build();
 
